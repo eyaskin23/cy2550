@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+
+ 
+
+import argparse
+
+import random
+
+import string
+
+ 
+
+def generate_password(words, caps, numbers, symbols):
+
+    wordlist = open("words.txt").read().splitlines()
+
+ 
+
+    if words < 1:
+
+        words = 4
+
+    if caps < 0:
+
+        caps = 0
+
+    if numbers < 0:
+
+        numbers = 0
+
+    if symbols < 0:
+
+        symbols = 0
+
+ 
+
+    selected_words = random.sample(wordlist, words)
+
+    print(selected_words)
+
+    if caps > 0:
+
+        for i in range(caps):
+
+            word_index = random.randint(0, len(selected_words) - 1)
+
+            selected_words[word_index] = selected_words[word_index].capitalize()
+
+ 
+
+    password = ''.join(selected_words)
+
+ 
+
+    if numbers > 0:
+
+        for _ in range(numbers):
+
+            password += str(random.randint(0, 9))
+
+ 
+
+    if symbols > 0:
+
+        symbols_list = string.punctuation
+
+        for _ in range(symbols):
+
+            password += random.choice(symbols_list)
+
+ 
+
+    return password
+
+ 
+
+def main():
+
+    parser = argparse.ArgumentParser(description="Generate a secure, memorable password using the XKCD method")
+
+    parser.add_argument("-w", "--words", type=int, default=4, help="include WORDS words in the password (default=4)")
+
+    parser.add_argument("-c", "--caps", type=int, default=0, help="capitalize the first letter of CAPS random words (default=0)")
+
+    parser.add_argument("-n", "--numbers", type=int, default=0, help="insert NUMBERS random numbers in the password (default=0)")
+
+    parser.add_argument("-s", "--symbols", type=int, default=0, help="insert SYMBOLS random symbols in the password (default=0)")
+
+ 
+
+    args = parser.parse_args()
+
+ 
+
+    caps = args.caps if args.caps >= 0 else 0
+
+    numbers = args.numbers if args.numbers >= 0 else 0
+
+    symbols = args.symbols if args.symbols >= 0 else 0
+
+ 
+
+    password = generate_password(args.words, caps, numbers, symbols)
+
+    print(password)
+
+ 
+
+if __name__ == "__main__":
+
+    main()
