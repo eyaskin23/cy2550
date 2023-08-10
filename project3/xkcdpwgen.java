@@ -1,239 +1,79 @@
-
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class xkcdpwgen {
 
-  public static void main(String[] args) throws IOException {
-    System.out.println(gen(args)); // takes in command line
-  }
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
 
-  public static String gen(String[] input) throws IOException {
-    int wordCount, capCount, numberCount, symbolCount; //ints to keep track off
+        System.out.print("Enter the number of words in the password: ");
+        int numWords = scanner.nextInt();
 
-    wordCount = 4;//set default number as 4
-    capCount = 0;
-    numberCount = 0;
-    symbolCount = 0;
-    
-    //takes in the input and recognizes the number after if there is one
-    for (int i = 0; i < input.length; i++) {
-      if (input[i].equalsIgnoreCase("-h") || input[i].equalsIgnoreCase("--help")) {
-        return "How to use\n"
-            + "Type in 'xkcdpwgen' with either -h, -c, -n, -s, --help, --words, --numbers, --symbols\n"
-            + " with a number in front of it\n"
-            + "You can also choose to not put a number in front and it will generate a\n"
-            + "4 word password. If you do use them, -h and --help provides this message\n"
-            + "-w and --words sets the number of words\n"
-            + "-c and --caps capitalizes the first letters of a # of random words\n"
-            + "-n and --n sets the number of words in the password\n"
-            + "-s and --symbols inserts a # of random symbols into the password";
-      }
-      else if (input[i].equals("-w") || input[i].equals("--words")) {
-        wordCount = Integer.parseInt(input[++i]);
-      }
-      else if (input[i].equals("-c") || input[i].equals("--caps")) {
-        capCount = Integer.parseInt(input[++i]);
-      }
-      else if (input[i].equals("-n") || input[i].equals("--numbers")) {
-        numberCount = Integer.parseInt(input[++i]);
-      }
-      else if (input[i].equals("-s") || input[i].equals("--symbols")) {
-        symbolCount = Integer.parseInt(input[++i]);
-      }
+        System.out.print("Enter the number of capitalizations: ");
+        int numCapitalizations = scanner.nextInt();
+
+        System.out.print("Enter the number of numbers: ");
+        int numNumbers = scanner.nextInt();
+
+        System.out.print("Enter the number of symbols: ");
+        int numSymbols = scanner.nextInt();
+
+        scanner.close();
+
+        List<String> words = readWordsFromFile("words.txt");
+        String password = generatePassword(words, numWords, numCapitalizations, numNumbers, numSymbols);
+
+        System.out.println("Generated Password: " + password);
     }
 
-    //error statements if the user puts in a bad number
-    if (wordCount < 1) {
-      throw new IllegalArgumentException("Word count must be at least 1");
-    }
-    if (capCount < 0) {
-      throw new IllegalArgumentException("Cap count must be at least 0");
-    }
-    if (numberCount < 0) {
-      throw new IllegalArgumentException("Number count must be at least 0");
-    }
-    if (symbolCount < 0) {
-      throw new IllegalArgumentException("Symbol count must be at least 0");
-    }
-    if (capCount > wordCount) {
-      throw new IllegalArgumentException("Cap count cannot be higher than the actual word count");
+    private static List<String> readWordsFromFile(String filename) {
+        List<String> words = new ArrayList<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                words.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.err.println("Error reading words from file: " + e.getMessage());
+        }
+        return words;
     }
 
-    String LoWords[] = new String[wordCount];// List of words stored in an array
-    for (int i = 0; i < wordCount; i++) {
-      LoWords[i] = Files.readAllLines(Paths.get("words.txt")).get(new Random().nextInt(58110));                                                                                                                                                                                           // array
-    }
+    private static String generatePassword(List<String> words, int numWords, int numCapitalizations, int numNumbers, int numSymbols) {
+        Random rand = new Random();
+        StringBuilder password = new StringBuilder();
 
-    //for loop to make the first letter equal
-    for (int x = capCount; x > 0; x--) {
-      int randomWord = new Random().nextInt(wordCount); //picks a random word
+        for (int i = 0; i < numWords; i++) {
+            String randomWord = words.get(rand.nextInt(words.size()));
+            password.append(randomWord);
+        }
 
-      //condition to make sure it doesnt make the same word uppercase again
-      if (LoWords[randomWord].substring(0, 1).toUpperCase().equals(LoWords[randomWord].substring(0,
-          1))) {
-        x++;
-      }
-      else {
-        //makes a random word uppercase for the first letter
-        LoWords[randomWord] = LoWords[randomWord].substring(0, 1).toUpperCase()
-            + (LoWords[randomWord].substring(1));
-      }
-    }
+        for (int i = 0; i < numCapitalizations; i++) {
+            int index = rand.nextInt(password.length());
+            char c = password.charAt(index);
+            password.setCharAt(index, Character.toUpperCase(c));
+        }
 
-    for (int x = numberCount; x > 0; x--) {
-      int randomWord = new Random().nextInt(wordCount); //the random word that it is being placed next to
-      int randomNumber = new Random().nextInt(10); //decides the random number being placed in
-      int randomPlacement = new Random().nextInt(3); //decides if the number is in the beginning, middle or end
+        for (int i = 0; i < numNumbers; i++) {
+            int index = rand.nextInt(password.length());
+            password.insert(index, rand.nextInt(10));
+        }
 
-      if (randomPlacement == 0) {
-        LoWords[randomWord] = LoWords[randomWord] + randomNumber; //end of number
-      }
-      else if (randomPlacement == 1) {
-        // in the middle
-        LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-            + randomNumber + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-      }
-      else {
-        //behind the number
-        LoWords[randomWord] = randomNumber + LoWords[randomWord];
-      }
-    }
-    //list of if and else ifs to add random symbols
-    for (int x = symbolCount; x > 0; x--) {
-      int randomSymbol = new Random().nextInt(10); //picking a random symbol
-      int randomWord = new Random().nextInt(wordCount); //picking a random word
-      int randomPlacement = new Random().nextInt(3); //where the number is being placed
+        String symbols = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        for (int i = 0; i < numSymbols; i++) {
+            int index = rand.nextInt(password.length());
+            char symbol = symbols.charAt(rand.nextInt(symbols.length()));
+            password.insert(index, symbol);
+        }
 
-      if (randomSymbol == 0) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + ")";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = ")" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + ")" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 1) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "!";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "!" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "!" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 2) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "@";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "@" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "@" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 3) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "#";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "#" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "#" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 4) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "$";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "$" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "$" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 5) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "%";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "%" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "%" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 6) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "^";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "^" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "^" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 7) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "&";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "&" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "&" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else if (randomSymbol == 8) {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "*";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "*" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "*" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
-      else {
-        if (randomPlacement == 0) {
-          LoWords[randomWord] = LoWords[randomWord] + "(";
-        }
-        else if (randomPlacement == 1) {
-          LoWords[randomWord] = "(" + LoWords[randomWord];
-        }
-        else {
-          LoWords[randomWord] = LoWords[randomWord].substring(0, (LoWords[randomWord].length() / 2))
-              + "(" + (LoWords[randomWord].substring(LoWords[randomWord].length() / 2));
-        }
-      }
+        return password.toString();
     }
-    String password = ""; //empty string
-    
-    //adding to the actual string to return
-    for (int i = 0; i < wordCount; i++) {
-      password = password + LoWords[i];
-    }
-    return password;
-  }
 }
+
