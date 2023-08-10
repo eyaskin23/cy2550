@@ -1,7 +1,5 @@
-xkcdpwgen:
-	chmod +x xkcdpwgen
+all: java
 
-clean:
-    # No cleaning necessary for a Python script
+java:
 
-.PHONY: clean
+	javac xkcdpwgen.java
