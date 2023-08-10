@@ -1,11 +1,20 @@
+# Makefile for xkcdpwgen
+
+# Compiler and flags
+JAVAC = javac
 JFLAGS = -g
-JC = javac
-.SUFFIXES: .java .class
-.java.class:
-	$(JC) $(JFLAGS) $*.java
-CLASSES = \
-	xkcdpwgen.java
-default: classes
-classes: $(CLASSES:.java=.class)
+
+# Source files and class name
+SRCS = xkcdpwgen.java
+CLASSES = xkcdpwgen.class
+
+# Main target
+all: $(CLASSES)
+
+# Compile Java source files
+$(CLASSES): $(SRCS)
+	$(JAVAC) $(JFLAGS) $(SRCS)
+
+# Clean up compiled files
 clean:
-	$(RM) *.class
+	rm -f $(CLASSES)
