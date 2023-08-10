@@ -5,9 +5,7 @@ import random
 import string
 
 def generate_password(words, caps, numbers, symbols):
-    word_list = [
-        "apple", "back", "carry", "numb", "here", "one", "delete", "two", "random", "cookie", "scrabble", "coffee", "mascara", "into", "mono"
-    ]
+    wordlist = open("words.txt").read().splitlines()
     
     if words < 1:
         words = 4
